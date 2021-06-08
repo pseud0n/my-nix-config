@@ -6,10 +6,13 @@
 
 let
 	unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
+	user = "alexs";
 in {
 	imports =
 		[ # Include the results of the hardware scan.
 			./hardware-configuration.nix
+#		    (import "${builtins.fetchTarball https://github.com/rycee/home-manager/archive/master.tar.gz}/nixos")
+#		    ./home-manager/home.nix
 		];
 
 	# Use the systemd-boot EFI boot loader.
@@ -107,8 +110,16 @@ in {
 	programs.fish.enable = true;
 	programs.steam.enable = true;
 
+#	security.doas = {
+#		enable = true;
+#		extraRules = [{
+#		    users = [ user ];
+#		    keepEnv = true;
+#		}];
+#	};
+
 	# Define a user account. Don't forget to set a password with ‘passwd’.
-	users.users.alexs = {
+	users.users."${user}" = {
 		shell = pkgs.fish;
 		isNormalUser = true;
 		extraGroups = [ "wheel" "video" "networkmanager"]; # Enable ‘sudo’ for the user.
@@ -132,18 +143,12 @@ in {
 	# List packages installed in system profile. To search, run:
 	# $ nix search wget
 	environment.systemPackages = with pkgs; [
-		wayland
-		sway
-		wl-clipboard
-		polkit_gnome
+		home-manager
 
 		# editors
 		vim 
 		neovim
 		emacs
-		((emacsPackagesNgGen emacs).emacsWithPackages (epkgs: [
-			epkgs.vterm
-		]))
 
 		# coding/dependencies
 		gnumake
@@ -154,16 +159,14 @@ in {
 		clang_11
 		boost
 		ccls
-
 		flex
 		unstable.bison
 
-		stack
 		ghc
-		haskellPackages.stack
 		haskellPackages.ghcid
 		haskellPackages.haskell-language-server
-		#haskellPackages.stack2nix
+		cabal2nix
+		cabal-install
 
 		python3
 		python38Packages.pygobject3
@@ -181,18 +184,15 @@ in {
 		bash-completion
 		libxkbcommon
 		unstable.meson
-		# haskellPackages.haskellPlatform
+		xboxdrv
 		
 		nerdfonts
 
-		wl-clipboard
-		brightnessctl
-	
 		# general apps & utilities
 		firefox
 		etcher
 		discord
-		#zoom-us
+		zoom-us
 		thunderbird
 		agenda
 		spotify
@@ -208,17 +208,17 @@ in {
 		simplescreenrecorder
 		jack1 # Audio
 		alacritty
-		dockbarx
+#alsaLib
 
 		# gaming
 		wine
 		wineWowPackages.stable
 		lutris
-		#rpcs3
-		#(steam.override { extraPkgs = pkgs: [ bumblebee glxinfo libgdiplus ]; nativeOnly = true; }).run
 		steam
+		steam-run
 
 		# cl utilities
+		doas
 		fish
 		wget
 		curl
@@ -253,10 +253,6 @@ in {
 		xfce.xfwm4-themes
 		xfce.xfce4-dockbarx-plugin
 		conky
-#		haskellPackages.xmobar
-#		haskellPackages.xmonad
-#		haskellPackages.xmonad-contrib
-#		haskellPackages.xmonad-extras
 	];
 
 	boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
